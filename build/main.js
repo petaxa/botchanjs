@@ -11,7 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const dotenv_1 = __importDefault(require("dotenv"));
@@ -21,8 +20,8 @@ const client = new discord_js_1.Client({
     intents: [discord_js_1.GatewayIntentBits.Guilds, discord_js_1.GatewayIntentBits.GuildMessages, discord_js_1.GatewayIntentBits.MessageContent, discord_js_1.GatewayIntentBits.GuildVoiceStates],
 });
 // metainfo
-const clientId = process.env.BOTCHAN_CLIENTID; // botchan
-const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID]; // makeSense, oheya
+const clientId = Key_BOTCHAN_CLIENTID; // botchan
+const guildIDs = [Key_MAKESENSE_GUILDID, Key_OHEYA_GUILDID]; // makeSense, oheya
 // 起動時処理
 client.once('ready', () => {
     var _a;
@@ -35,8 +34,8 @@ const replyMsg = (interaction, msg) => __awaiter(void 0, void 0, void 0, functio
 });
 // slash commandで設定の確認
 const replyCurrentSettings = (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
-    const channel = (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.channels.cache.find(channel => channel.name === 'settings');
+    var _a;
+    const channel = (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.channels.cache.find(channel => channel.name === 'settings');
     if (!channel) {
         console.log('channel cant be get');
         return;
@@ -69,7 +68,7 @@ const commandsInfoList = [
 // コマンドビルダを配列化
 const commands = commandsInfoList.map(info => new discord_js_1.SlashCommandBuilder().setName(info.name).setDescription(info.discription).toJSON());
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
-const rest = new discord_js_1.REST({ version: '10' }).setToken((_a = process.env.TOKEN) !== null && _a !== void 0 ? _a : '');
+const rest = new discord_js_1.REST({ version: '10' }).setToken(Key_TOKEN !== null && Key_TOKEN !== void 0 ? Key_TOKEN : '');
 // guildIDsのサーバーにslash commandを実装
 guildIDs.forEach(guildId => {
     if (!clientId || !guildId) {
@@ -98,7 +97,7 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
     const VcNoticeID = (_b = (_a = oldState.guild.channels.cache.find(channel => channel.name === 'vc-notice')) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : '';
     console.log(VcNoticeID);
     // secretVCのIDリスト
-    const secretVcIdsList = [process.env.OHEYA_SECRET, ...secretVC];
+    const secretVcIdsList = [Key_OHEYA_SECRET, ...secretVC];
     // log送信チャンネルを取得
     const channel = client.channels.cache.get(VcNoticeID);
     if (!channel)
@@ -139,13 +138,13 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
 };
 // vcの状態変化で発火
 client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e, _f;
-    console.log(`oldState: ${(_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
-    console.log(`newState: ${(_d = newState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
+    var _b, _c, _d, _e;
+    console.log(`oldState: ${(_b = oldState.channel) === null || _b === void 0 ? void 0 : _b.name}`);
+    console.log(`newState: ${(_c = newState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
     const channel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
     const settings = yield getSettings(channel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
-    if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
+    if (((_d = oldState.channel) === null || _d === void 0 ? void 0 : _d.name) !== ((_e = newState.channel) === null || _e === void 0 ? void 0 : _e.name)) {
         sendInOutMsg(oldState, newState, settings.secretChannel);
     }
 }));
@@ -169,4 +168,4 @@ const getSettings = (channel) => __awaiter(void 0, void 0, void 0, function* () 
     });
     return settings;
 });
-client.login(process.env.TOKEN);
+client.login(Key_TOKEN);

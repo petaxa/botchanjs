@@ -9,8 +9,8 @@ const client = new Client({
 })
 
 // metainfo
-const clientId = process.env.BOTCHAN_CLIENTID // botchan
-const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID] // makeSense, oheya
+const clientId = Key_BOTCHAN_CLIENTID // botchan
+const guildIDs = [Key_MAKESENSE_GUILDID, Key_OHEYA_GUILDID] // makeSense, oheya
 
 // 起動時処理
 client.once('ready', () => {
@@ -70,7 +70,7 @@ const commandsInfoList: commandsList[] = [
 const commands = commandsInfoList.map(info => new SlashCommandBuilder().setName(info.name).setDescription(info.discription).toJSON())
 
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
-const rest = new REST({ version: '10' }).setToken(process.env.TOKEN ?? '')
+const rest = new REST({ version: '10' }).setToken(Key_TOKEN ?? '')
 // guildIDsのサーバーにslash commandを実装
 guildIDs.forEach(guildId => {
     if (!clientId || !guildId) {
@@ -102,7 +102,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:strin
     console.log(VcNoticeID)
 
     // secretVCのIDリスト
-    const secretVcIdsList = [process.env.OHEYA_SECRET, ...secretVC]
+    const secretVcIdsList = [Key_OHEYA_SECRET, ...secretVC]
 
     // log送信チャンネルを取得
     const channel = client.channels.cache.get(VcNoticeID)
@@ -183,4 +183,4 @@ const getSettings = async(channel: TextChannel): Promise<settingType> => {
 }
 
 
-client.login(process.env.TOKEN)
+client.login(Key_TOKEN)
