@@ -104,8 +104,8 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
     if (!channel)
         return;
     // 現在日時を取得
-    const date = new Date();
-    const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${date.getHours() + 9}:${date.getMinutes()}`;
+    const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000));
+    const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${date.getHours()}:${date.getMinutes()}`;
     // メッセージを送信
     // newStateが入室、oldStateが退室
     if ((_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name) {
