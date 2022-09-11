@@ -110,7 +110,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:strin
 
     // 現在日時を取得
     const date = new Date()
-    const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${date.getHours()}:${date.getMinutes()}`
+    const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${date.getHours() + 9}:${date.getMinutes()}`
 
     // メッセージを送信
     // newStateが入室、oldStateが退室
