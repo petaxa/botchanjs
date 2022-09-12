@@ -139,19 +139,19 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
 };
 // vcの状態変化で発火
 client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var _c, _d, _e, _f, _g, _h, _j, _k;
     console.log(`oldState: ${(_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
     console.log(`newState: ${(_d = newState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
     const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
     const settings = yield getSettings(settingChannel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
-        console.log('vcnotice');
-        console.log(settings.hideVC);
-        console.log((_g = oldState.channel) === null || _g === void 0 ? void 0 : _g.id, (_h = newState.channel) === null || _h === void 0 ? void 0 : _h.id);
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(((_k = (_j = oldState.channel) === null || _j === void 0 ? void 0 : _j.id) !== null && _k !== void 0 ? _k : '') || ((_m = (_l = newState.channel) === null || _l === void 0 ? void 0 : _l.id) !== null && _m !== void 0 ? _m : '')))) {
+        if (!(settings.hideVC.includes(((_h = (_g = oldState.channel) === null || _g === void 0 ? void 0 : _g.id) !== null && _h !== void 0 ? _h : '') || ((_k = (_j = newState.channel) === null || _j === void 0 ? void 0 : _j.id) !== null && _k !== void 0 ? _k : '')))) {
             sendInOutMsg(oldState, newState, settings.secretChannel);
+        }
+        else {
+            console.log('StateUpdate in hideVC');
         }
     }
 }));
