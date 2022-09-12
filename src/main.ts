@@ -36,9 +36,32 @@ const replyCurrentSettings = async(interaction: ChatInputCommandInteraction<Cach
         .setTitle('settings')
         .setDescription('現在の設定を表示します')
         .addFields(
-            {name: 'secretChannel', value: settings.secretChannel.join('\n')}
+            {name: 'secretChannel', value: settings.secretChannel.join('\n')},
+            {name: 'hideVC', value: settings.hideVC.join('\n')}
         )
     interaction.reply({embeds: [settingEmbed]})
+}
+
+const replyHelp = async(interaction: ChatInputCommandInteraction<CacheType>) => {
+    const helpEmbed = new EmbedBuilder()
+        .setColor(0x0099FF)
+        .setTitle('HELP')
+        .setDescription('BOTの使い方')
+        .addFields(
+            {name: 'VCログ', value: 'vcの入退室をメッセージを送信します。\nvc-noticeという名前のチャンネルに出力されます。'},
+            {name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。'},
+            {
+                name: 'VCログの別チャンネル表示',
+                value: '権限を限定したチャンネルにログを送信したい等のため、「secret」というチャンネルにもログを送信できます。\n`secretChannel:`に続けてのIDを書き込みます。複数ある場合は半角スペースを挟んで連続して設定できます。',
+                inline: true
+            },
+            {
+                name: 'VCログ非表示設定',
+                value: 'VCログを表示しないVCを設定できます`hideVC:`に続けてIDを書き込みます。複数ある場合は半角スペースを挟んで連続して設定できます。',
+                inline: true
+            }
+        )
+    interaction.reply({embeds: [helpEmbed]})
 }
 
 // slash commandの一覧を見られると嬉しいので配列化
@@ -62,7 +85,12 @@ const commandsInfoList: commandsList[] = [
     {
         name: 'setting',
         discription: '設定の確認',
-        func: async(interaction: ChatInputCommandInteraction<CacheType>) => replyCurrentSettings(interaction)
+        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyCurrentSettings(interaction)
+    },
+    {
+        name: 'help',
+        discription: 'botの使い方',
+        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyHelp(interaction)
     }
 ]
 
