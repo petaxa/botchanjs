@@ -146,6 +146,9 @@ client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, 
     const settings = yield getSettings(settingChannel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
+        console.log('vcnotice');
+        console.log(settings.hideVC);
+        console.log(oldState.id, newState.id);
         // ログ非表示のVCの場合はログを送信しない
         if (!(settings.hideVC.includes(oldState.id || newState.id))) {
             sendInOutMsg(oldState, newState, settings.secretChannel);

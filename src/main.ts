@@ -150,6 +150,9 @@ client.on('voiceStateUpdate', async(oldState, newState) => {
     const settings = await getSettings(settingChannel)
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (oldState.channel?.name !== newState.channel?.name) {
+        console.log('vcnotice')
+        console.log(settings.hideVC)
+        console.log(oldState.id, newState.id)
         // ログ非表示のVCの場合はログを送信しない
         if (!(settings.hideVC.includes(oldState.id || newState.id))) {
             sendInOutMsg(oldState, newState, settings.secretChannel)
