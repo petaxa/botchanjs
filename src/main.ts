@@ -152,9 +152,9 @@ client.on('voiceStateUpdate', async(oldState, newState) => {
     if (oldState.channel?.name !== newState.channel?.name) {
         console.log('vcnotice')
         console.log(settings.hideVC)
-        console.log(oldState.id, newState.id)
+        console.log(oldState.channel?.id, newState.channel?.id)
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(oldState.id || newState.id))) {
+        if (!(settings.hideVC.includes((oldState.channel?.id ?? '') || (newState.channel?.id ?? '')))) {
             sendInOutMsg(oldState, newState, settings.secretChannel)
         }
     }
