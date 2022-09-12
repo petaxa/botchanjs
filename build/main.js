@@ -54,7 +54,7 @@ const replyHelp = (interaction) => __awaiter(void 0, void 0, void 0, function* (
         .setColor(0x0099FF)
         .setTitle('HELP')
         .setDescription('BOTの使い方')
-        .addFields({ name: 'VCログ', value: 'vcの入退室をメッセージを送信します。\nvc-noticeという名前のチャンネルに出力されます。' }, { name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。' }, {
+        .addFields({ name: 'VCログ', value: 'vcの入退室をメッセージで通知します。\nvc-noticeという名前のチャンネルに出力されます。' }, { name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。' }, {
         name: 'VCログの別チャンネル表示',
         value: '権限を限定したチャンネルにログを送信したい等のため、「secret」というチャンネルにもログを送信できます。\n`secretChannel:`に続けてのIDを書き込みます。複数ある場合は半角スペースを挟んで連続して設定できます。',
         inline: true

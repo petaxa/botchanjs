@@ -48,7 +48,7 @@ const replyHelp = async(interaction: ChatInputCommandInteraction<CacheType>) => 
         .setTitle('HELP')
         .setDescription('BOTの使い方')
         .addFields(
-            {name: 'VCログ', value: 'vcの入退室をメッセージを送信します。\nvc-noticeという名前のチャンネルに出力されます。'},
+            {name: 'VCログ', value: 'vcの入退室をメッセージで通知します。\nvc-noticeという名前のチャンネルに出力されます。'},
             {name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。'},
             {
                 name: 'VCログの別チャンネル表示',
