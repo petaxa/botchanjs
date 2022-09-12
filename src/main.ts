@@ -182,7 +182,8 @@ const getSettings = async(channel: TextChannel): Promise<settingType> => {
         const settingAry = msg.content.split(':')
         if(settingAry[0] === 'secretChannel') {
             settings.secretChannel.push(...settingAry[1].split(' '))
-        } else if(settingAry[0] === 'hideVC') {
+        }
+        if(settingAry[0] === 'hideVC') {
             settings.hideVC.push(...settingAry[1].split(' '))
         }
     })

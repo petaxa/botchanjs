@@ -170,7 +170,7 @@ const getSettings = (channel) => __awaiter(void 0, void 0, void 0, function* () 
         if (settingAry[0] === 'secretChannel') {
             settings.secretChannel.push(...settingAry[1].split(' '));
         }
-        else if (settingAry[0] === 'hideVC') {
+        if (settingAry[0] === 'hideVC') {
             settings.hideVC.push(...settingAry[1].split(' '));
         }
     });
