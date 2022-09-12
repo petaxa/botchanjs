@@ -142,12 +142,12 @@ client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, 
     var _c, _d, _e, _f;
     console.log(`oldState: ${(_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
     console.log(`newState: ${(_d = newState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
-    const channel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
-    const settings = yield getSettings(channel);
+    const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
+    const settings = yield getSettings(settingChannel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(channel.id))) {
+        if (!(settings.hideVC.includes(oldState.id || newState.id))) {
             sendInOutMsg(oldState, newState, settings.secretChannel);
         }
     }

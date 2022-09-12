@@ -146,12 +146,12 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:strin
 client.on('voiceStateUpdate', async(oldState, newState) => {
     console.log(`oldState: ${oldState.channel?.name}`)
     console.log(`newState: ${newState.channel?.name}`)
-    const channel = oldState.guild.channels.cache.find(channel => channel.name === 'settings') as TextChannel
-    const settings = await getSettings(channel)
+    const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings') as TextChannel
+    const settings = await getSettings(settingChannel)
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (oldState.channel?.name !== newState.channel?.name) {
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(channel.id))) {
+        if (!(settings.hideVC.includes(oldState.id || newState.id))) {
             sendInOutMsg(oldState, newState, settings.secretChannel)
         }
     }
