@@ -146,7 +146,10 @@ client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, 
     const settings = yield getSettings(channel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
-        sendInOutMsg(oldState, newState, settings.secretChannel);
+        // ログ非表示のVCの場合はログを送信しない
+        if (!(settings.hideVC.includes(channel.id))) {
+            sendInOutMsg(oldState, newState, settings.secretChannel);
+        }
     }
 }));
 const getSettings = (channel) => __awaiter(void 0, void 0, void 0, function* () {
@@ -154,7 +157,8 @@ const getSettings = (channel) => __awaiter(void 0, void 0, void 0, function* () 
     const msgs = yield (channel === null || channel === void 0 ? void 0 : channel.messages.fetch());
     // 設定の初期値を決定
     const settings = {
-        secretChannel: []
+        secretChannel: [],
+        hideVC: []
     };
     // 取得したメッセージから設定部分を検出、settingにセット
     msgs.forEach(msg => {
@@ -165,6 +169,9 @@ const getSettings = (channel) => __awaiter(void 0, void 0, void 0, function* () 
         const settingAry = msg.content.split(':');
         if (settingAry[0] === 'secretChannel') {
             settings.secretChannel.push(...settingAry[1].split(' '));
+        }
+        else if (settingAry[0] === 'hideVC') {
+            settings.hideVC.push(...settingAry[1].split(' '));
         }
     });
     return settings;

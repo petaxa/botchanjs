@@ -150,7 +150,10 @@ client.on('voiceStateUpdate', async(oldState, newState) => {
     const settings = await getSettings(channel)
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
     if (oldState.channel?.name !== newState.channel?.name) {
-        sendInOutMsg(oldState, newState, settings.secretChannel)
+        // ログ非表示のVCの場合はログを送信しない
+        if (!(settings.hideVC.includes(channel.id))) {
+            sendInOutMsg(oldState, newState, settings.secretChannel)
+        }
     }
 })
 
@@ -159,6 +162,7 @@ client.on('voiceStateUpdate', async(oldState, newState) => {
 // 設定オブジェクトの型を定義 追加する場合は型とsettingを編集
 interface settingType {
     secretChannel: string[]
+    hideVC: string[]
 }
 const getSettings = async(channel: TextChannel): Promise<settingType> => {
     // 設定チャンネルのメッセージを取得
@@ -166,7 +170,8 @@ const getSettings = async(channel: TextChannel): Promise<settingType> => {
 
     // 設定の初期値を決定
     const settings: settingType = {
-        secretChannel: []
+        secretChannel: [],
+        hideVC: []
     }
 
     // 取得したメッセージから設定部分を検出、settingにセット
@@ -177,6 +182,8 @@ const getSettings = async(channel: TextChannel): Promise<settingType> => {
         const settingAry = msg.content.split(':')
         if(settingAry[0] === 'secretChannel') {
             settings.secretChannel.push(...settingAry[1].split(' '))
+        } else if(settingAry[0] === 'hideVC') {
+            settings.hideVC.push(...settingAry[1].split(' '))
         }
     })
     return settings
