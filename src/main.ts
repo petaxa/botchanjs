@@ -16,14 +16,6 @@ const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID] // m
 client.once('ready', () => {
     console.log('Ready!')
     console.log(client.user?.tag)
-
-    // タイムアウトしてるっぽいから3秒ごとにコンソールに出しておく
-    setInterval(() => {
-        const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000)); // 日本標準時に揃えてる
-        const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-        console.log('INTERVAL')
-        console.log(nowmmddHHMM)
-    }, 3000)
 })
 
 // slash commandでメッセージを返信
