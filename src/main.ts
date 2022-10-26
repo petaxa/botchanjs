@@ -16,17 +16,25 @@ const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID] // m
 client.once('ready', () => {
     console.log('Ready!')
     console.log(client.user?.tag)
+
+    // タイムアウトしてるっぽいから3秒ごとにコンソールに出しておく
+    setInterval(() => {
+        const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000)); // 日本標準時に揃えてる
+        const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+        console.log('INTERVAL')
+        console.log(nowmmddHHMM)
+    }, 3000)
 })
 
 // slash commandでメッセージを返信
-const replyMsg = async(interaction: ChatInputCommandInteraction<CacheType>, msg: string) => {
+const replyMsg = async (interaction: ChatInputCommandInteraction<CacheType>, msg: string) => {
     await interaction.reply(msg)
 }
 
 // slash commandで設定の確認
-const replyCurrentSettings = async(interaction: ChatInputCommandInteraction<CacheType>) => {
+const replyCurrentSettings = async (interaction: ChatInputCommandInteraction<CacheType>) => {
     const channel = interaction.guild?.channels.cache.find(channel => channel.name === 'settings') as TextChannel
-    if(!channel) {
+    if (!channel) {
         console.log('channel cant be get')
         return
     }
@@ -36,20 +44,20 @@ const replyCurrentSettings = async(interaction: ChatInputCommandInteraction<Cach
         .setTitle('settings')
         .setDescription('現在の設定を表示します')
         .addFields(
-            {name: 'secretChannel', value: settings.secretChannel.join('\n')},
-            {name: 'hideVC', value: settings.hideVC.join('\n')}
+            { name: 'secretChannel', value: settings.secretChannel.join('\n') },
+            { name: 'hideVC', value: settings.hideVC.join('\n') }
         )
-    interaction.reply({embeds: [settingEmbed]})
+    interaction.reply({ embeds: [settingEmbed] })
 }
 
-const replyHelp = async(interaction: ChatInputCommandInteraction<CacheType>) => {
+const replyHelp = async (interaction: ChatInputCommandInteraction<CacheType>) => {
     const helpEmbed = new EmbedBuilder()
         .setColor(0x0099FF)
         .setTitle('HELP')
         .setDescription('BOTの使い方')
         .addFields(
-            {name: 'VCログ', value: 'vcの入退室をメッセージで通知します。\nvc-noticeという名前のチャンネルに出力されます。'},
-            {name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。'},
+            { name: 'VCログ', value: 'vcの入退室をメッセージで通知します。\nvc-noticeという名前のチャンネルに出力されます。' },
+            { name: '設定チャンネル', value: '決められたフォーマットで設定を記述すると各設定を変更できます。' },
             {
                 name: 'VCログの別チャンネル表示',
                 value: '権限を限定したチャンネルにログを送信したい等のため、「secret」というチャンネルにもログを送信できます。\n`secretChannel:`に続けてのIDを書き込みます。複数ある場合は半角スペースを挟んで連続して設定できます。',
@@ -61,7 +69,7 @@ const replyHelp = async(interaction: ChatInputCommandInteraction<CacheType>) => 
                 inline: true
             }
         )
-    interaction.reply({embeds: [helpEmbed]})
+    interaction.reply({ embeds: [helpEmbed] })
 }
 
 // slash commandの一覧を見られると嬉しいので配列化
@@ -75,22 +83,22 @@ const commandsInfoList: commandsList[] = [
     {
         name: 'ping',
         discription: 'Replies with pong!',
-        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyMsg(interaction, 'pong')
+        func: async (interaction: ChatInputCommandInteraction<CacheType>) => await replyMsg(interaction, 'pong')
     },
     {
         name: 'hoge',
         discription: 'hogehogeを返すよ',
-        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyMsg(interaction, 'hogehoge')
+        func: async (interaction: ChatInputCommandInteraction<CacheType>) => await replyMsg(interaction, 'hogehoge')
     },
     {
         name: 'setting',
         discription: '設定の確認',
-        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyCurrentSettings(interaction)
+        func: async (interaction: ChatInputCommandInteraction<CacheType>) => await replyCurrentSettings(interaction)
     },
     {
         name: 'help',
         discription: 'botの使い方',
-        func: async(interaction: ChatInputCommandInteraction<CacheType>) => await replyHelp(interaction)
+        func: async (interaction: ChatInputCommandInteraction<CacheType>) => await replyHelp(interaction)
     }
 ]
 
@@ -124,7 +132,7 @@ client.on('interactionCreate', async interaction => {
 })
 
 // 入出ログ出力メソッド
-const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:string[]) => {
+const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: string[]) => {
     // vc-noticeのチャンネルIDを取得
     const VcNoticeID = oldState.guild.channels.cache.find(channel => channel.name === 'vc-notice')?.id ?? ''
     console.log(VcNoticeID)
@@ -137,8 +145,8 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:strin
     if (!channel) return
 
     // 現在日時を取得
-    const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000));
-    const nowmmddHHMM = `${ date.getMonth() + 1 }/${ date.getDate() }-${ String(date.getHours()).padStart(2, '0') }:${ String(date.getMinutes()).padStart(2, '0') }`
+    const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000)); // 日本標準時に揃えてる
+    const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 
     // メッセージを送信
     // newStateが入室、oldStateが退室
@@ -171,7 +179,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC:strin
 }
 
 // vcの状態変化で発火
-client.on('voiceStateUpdate', async(oldState, newState) => {
+client.on('voiceStateUpdate', async (oldState, newState) => {
     console.log(`oldState: ${oldState.channel?.name}`)
     console.log(`newState: ${newState.channel?.name}`)
     const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings') as TextChannel
@@ -194,7 +202,7 @@ interface settingType {
     secretChannel: string[]
     hideVC: string[]
 }
-const getSettings = async(channel: TextChannel): Promise<settingType> => {
+const getSettings = async (channel: TextChannel): Promise<settingType> => {
     // 設定チャンネルのメッセージを取得
     const msgs = await channel?.messages.fetch()
 
@@ -207,13 +215,13 @@ const getSettings = async(channel: TextChannel): Promise<settingType> => {
     // 取得したメッセージから設定部分を検出、settingにセット
     msgs.forEach(msg => {
         // ":"が含まれていない場合はreturn
-        if(!msg.content.includes(':')) return
+        if (!msg.content.includes(':')) return
         // ":"を区切り文字として分割
         const settingAry = msg.content.split(':')
-        if(settingAry[0] === 'secretChannel') {
+        if (settingAry[0] === 'secretChannel') {
             settings.secretChannel.push(...settingAry[1].split(' '))
         }
-        if(settingAry[0] === 'hideVC') {
+        if (settingAry[0] === 'hideVC') {
             settings.hideVC.push(...settingAry[1].split(' '))
         }
     })
