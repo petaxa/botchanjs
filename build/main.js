@@ -85,10 +85,20 @@ const commandsInfoList = [
         name: 'help',
         discription: 'botの使い方',
         func: (interaction) => __awaiter(void 0, void 0, void 0, function* () { return yield replyHelp(interaction); })
-    }
+    },
 ];
 // コマンドビルダを配列化
 const commands = commandsInfoList.map(info => new discord_js_1.SlashCommandBuilder().setName(info.name).setDescription(info.discription).toJSON());
+// forumのチャンネル配列
+// const forumChannels = 
+// タグ追加のビルダ作成
+const addTagsBuilder = new discord_js_1.SlashCommandBuilder().setName('addtags').setDescription('forumにタグを追加')
+    .addStringOption(option => option.setName('input')
+    .setDescription('inputTest'));
+// .addChannelOption(
+//     option => option.setName('channel')
+//     .setDescription('channel option')
+// )
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
 const rest = new discord_js_1.REST({ version: '10' }).setToken((_a = process.env.TOKEN) !== null && _a !== void 0 ? _a : '');
 // guildIDsのサーバーにslash commandを実装
@@ -97,20 +107,43 @@ guildIDs.forEach(guildId => {
         console.error;
         return;
     }
-    rest.put(discord_js_1.Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+    rest.put(discord_js_1.Routes.applicationGuildCommands(clientId, guildId), { body: [...commands, addTagsBuilder] })
         .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
         .catch(console.error);
 });
 // slash commandが送信されたら発火
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
     if (!interaction.isChatInputCommand())
         return;
     const { commandName } = interaction;
+    // 単純応答のスラッシュコマンド
     commandsInfoList.forEach((info) => __awaiter(void 0, void 0, void 0, function* () {
         if (commandName === info.name) {
             info.func(interaction);
         }
     }));
+    // タグの付与
+    if (commandName === 'addtags') {
+        const forumChannel = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.channels.cache.find(channel => channel.name === 'test-forum');
+        const availableTags = forumChannel.availableTags;
+        const inputTags = interaction.options.getString('input');
+        let isCover = false;
+        let errMsg = 'タグを追加できませんでした';
+        // タグが被ってたら終了
+        availableTags.forEach(v => {
+            if (v.name === inputTags) {
+                isCover = true;
+                errMsg = '被ってるよ!!';
+            }
+        });
+        if (!inputTags || isCover) {
+            interaction.reply(errMsg);
+            return;
+        }
+        forumChannel.setAvailableTags([...availableTags, { name: inputTags }], 'jejeje');
+        interaction.reply('add tags');
+    }
 }));
 // 入出ログ出力メソッド
 const sendInOutMsg = (oldState, newState, secretVC) => {
@@ -125,7 +158,7 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
     if (!channel)
         return;
     // 現在日時を取得
-    const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000));
+    const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000)); // 日本標準時に揃えてる
     const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
     // メッセージを送信
     // newStateが入室、oldStateが退室
@@ -160,15 +193,15 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
 };
 // vcの状態変化で発火
 client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c, _d, _e, _f, _g, _h, _j, _k;
-    console.log(`oldState: ${(_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
-    console.log(`newState: ${(_d = newState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
+    var _d, _e, _f, _g, _h, _j, _k, _l;
+    console.log(`oldState: ${(_d = oldState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
+    console.log(`newState: ${(_e = newState.channel) === null || _e === void 0 ? void 0 : _e.name}`);
     const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
     const settings = yield getSettings(settingChannel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
-    if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
+    if (((_f = oldState.channel) === null || _f === void 0 ? void 0 : _f.name) !== ((_g = newState.channel) === null || _g === void 0 ? void 0 : _g.name)) {
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(((_h = (_g = oldState.channel) === null || _g === void 0 ? void 0 : _g.id) !== null && _h !== void 0 ? _h : '') || ((_k = (_j = newState.channel) === null || _j === void 0 ? void 0 : _j.id) !== null && _k !== void 0 ? _k : '')))) {
+        if (!(settings.hideVC.includes(((_j = (_h = oldState.channel) === null || _h === void 0 ? void 0 : _h.id) !== null && _j !== void 0 ? _j : '') || ((_l = (_k = newState.channel) === null || _k === void 0 ? void 0 : _k.id) !== null && _l !== void 0 ? _l : '')))) {
             sendInOutMsg(oldState, newState, settings.secretChannel);
         }
         else {

@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, REST, SlashCommandBuilder, Routes, VoiceState, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js'
+import { Client, GatewayIntentBits, REST, SlashCommandBuilder, Routes, VoiceState, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel, ForumChannel } from 'discord.js'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -16,14 +16,6 @@ const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID] // m
 client.once('ready', () => {
     console.log('Ready!')
     console.log(client.user?.tag)
-
-    // タイムアウトしてるっぽいから3秒ごとにコンソールに出しておく
-    setInterval(() => {
-        const date = new Date(Date.now() + ((new Date().getTimezoneOffset() + (9 * 60)) * 60 * 1000)); // 日本標準時に揃えてる
-        const nowmmddHHMM = `${date.getMonth() + 1}/${date.getDate()}-${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-        console.log('INTERVAL')
-        console.log(nowmmddHHMM)
-    }, 3000)
 })
 
 // slash commandでメッセージを返信
@@ -72,6 +64,11 @@ const replyHelp = async (interaction: ChatInputCommandInteraction<CacheType>) =>
     interaction.reply({ embeds: [helpEmbed] })
 }
 
+// forumにタグ追加のテスト
+// const addTagsToForum = () => {
+
+// }
+
 // slash commandの一覧を見られると嬉しいので配列化
 // コマンドと返答のリストの型
 interface commandsList {
@@ -99,11 +96,25 @@ const commandsInfoList: commandsList[] = [
         name: 'help',
         discription: 'botの使い方',
         func: async (interaction: ChatInputCommandInteraction<CacheType>) => await replyHelp(interaction)
-    }
+    },
 ]
 
 // コマンドビルダを配列化
 const commands = commandsInfoList.map(info => new SlashCommandBuilder().setName(info.name).setDescription(info.discription).toJSON())
+
+// forumのチャンネル配列
+// const forumChannels = 
+
+// タグ追加のビルダ作成
+const addTagsBuilder = new SlashCommandBuilder().setName('addtags').setDescription('forumにタグを追加')
+    .addStringOption(
+        option => option.setName('input')
+        .setDescription('inputTest')
+    )
+    // .addChannelOption(
+    //     option => option.setName('channel')
+    //     .setDescription('channel option')
+    // )
 
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN ?? '')
@@ -113,8 +124,8 @@ guildIDs.forEach(guildId => {
         console.error
         return
     }
-    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-        .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
+    rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [...commands, addTagsBuilder] })
+        .then((data: any) => console.log(`Successfully registered ${data.length} application commands.`))
         .catch(console.error)
 })
 
@@ -124,11 +135,37 @@ client.on('interactionCreate', async interaction => {
 
     const { commandName } = interaction
 
+    // 単純応答のスラッシュコマンド
     commandsInfoList.forEach(async (info) => {
         if (commandName === info.name) {
             info.func(interaction)
         }
     })
+
+    // タグの付与
+    if (commandName === 'addtags') {
+        const forumChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'test-forum') as ForumChannel
+        const availableTags = forumChannel.availableTags
+
+        const inputTags = interaction.options.getString('input')
+        let isCover = false
+        let errMsg = 'タグを追加できませんでした'
+
+        // タグが被ってたら終了
+        availableTags.forEach(v => {
+            if(v.name === inputTags) {
+                isCover = true
+                errMsg = '被ってるよ!!'
+            }
+        })
+        if(!inputTags || isCover) {
+            interaction.reply(errMsg)
+            return
+        }
+
+        forumChannel.setAvailableTags([...availableTags, {name: inputTags}], 'jejeje')
+        interaction.reply('add tags')
+    }
 })
 
 // 入出ログ出力メソッド
@@ -141,7 +178,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
     const secretVcIdsList = [process.env.OHEYA_SECRET, ...secretVC]
 
     // log送信チャンネルを取得
-    const channel = client.channels.cache.get(VcNoticeID)
+    const channel = client.channels.cache.get(VcNoticeID) as TextChannel
     if (!channel) return
 
     // 現在日時を取得
@@ -156,7 +193,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
 
         // secretVCに登録したVCの退室はsecretチャンネルにログを出力
         if (secretVcIdsList.includes(oldState.channel?.id)) {
-            const secretChannel = oldState.guild.channels.cache.find(channel => channel.name === 'secret')
+            const secretChannel = oldState.guild.channels.cache.find(channel => channel.name === 'secret') as TextChannel
             if (!secretChannel) return
             secretChannel.send(outMsg)
         } else {
@@ -169,7 +206,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
 
         // secretVCに登録したVCの入室はsecretチャンネルにログを出力
         if (secretVcIdsList.includes(newState.channel?.id)) {
-            const secretChannel = newState.guild.channels.cache.find(channel => channel.name === 'secret')
+            const secretChannel = newState.guild.channels.cache.find(channel => channel.name === 'secret') as TextChannel
             if (!secretChannel) return
             secretChannel.send(intoMsg)
         } else {
