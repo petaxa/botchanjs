@@ -60,6 +60,10 @@ const replyHelp = async (interaction: ChatInputCommandInteraction<CacheType>) =>
                 name: 'VCログ非表示設定',
                 value: 'VCログを表示しないVCを設定できます`hideVC:`に続けてIDを書き込みます。複数ある場合は半角スペースを挟んで連続して設定できます。',
                 inline: true
+            },
+            {
+                name: 'forumタグ追加',
+                value: 'forumチャンネルのタグを追加するコマンドです。\n`/addtags inputname: タグ名 selectchannel: チャンネル名`\nタグ名は半角スペースを区切りとして複数同時に登録できます。',
             }
         )
     interaction.reply({ embeds: [helpEmbed] })
@@ -129,7 +133,9 @@ guildIDs.forEach(guildId => {
         return
     }
     rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [...commands, addTagsBuilder] })
-        .then((data: any) => console.log(`Successfully registered ${data.length} application commands for ${guildId}.`))
+        .then((data: any) => {
+            console.log(`Successfully registered ${data.length} application commands for ${guildId}.`)
+        })
         .catch(console.error)
 })
 
@@ -214,6 +220,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
     if (oldState.channel?.name) {
         // 送信メッセージ
         const outMsg = `${nowmmddHHMM} に ${oldState.member?.displayName} が ${oldState.channel.name} から退室しました`
+        console.log(outMsg)
 
         // secretVCに登録したVCの退室はsecretチャンネルにログを出力
         if (secretVcIdsList.includes(oldState.channel?.id)) {
@@ -227,6 +234,7 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
     if (newState.channel?.name) {
         // 送信メッセージ
         const intoMsg = `${nowmmddHHMM} に ${newState.member?.displayName} が ${newState.channel.name} に入室しました`
+        console.log(intoMsg)
 
         // secretVCに登録したVCの入室はsecretチャンネルにログを出力
         if (secretVcIdsList.includes(newState.channel?.id)) {
@@ -241,8 +249,6 @@ const sendInOutMsg = (oldState: VoiceState, newState: VoiceState, secretVC: stri
 
 // vcの状態変化で発火
 client.on('voiceStateUpdate', async (oldState, newState) => {
-    console.log(`oldState: ${oldState.channel?.name}`)
-    console.log(`newState: ${newState.channel?.name}`)
     const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings') as TextChannel
     const settings = await getSettings(settingChannel)
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
