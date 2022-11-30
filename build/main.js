@@ -142,16 +142,23 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
         }
         const forumChannel = inputChannel;
         const availableTags = forumChannel === null || forumChannel === void 0 ? void 0 : forumChannel.availableTags;
-        const inputTagsAry = inputTags.split(' ');
         // タグが被ってたら終了
-        availableTags.forEach(v => {
-            inputTagsAry.forEach(tag => {
-                if (v.name === tag) {
-                    isErrInput = true;
-                    errMsg = 'タグが重複しています';
-                }
+        const inputTagsAry = inputTags.split(' ').filter(tag => {
+            let isDup = false;
+            availableTags.forEach(v => {
+                if (tag === v.name)
+                    isDup = true;
             });
+            return !isDup;
         });
+        availableTags.forEach(v => {
+            return;
+        });
+        console.log(inputTagsAry);
+        if (!inputTagsAry.length) {
+            isErrInput = true;
+            errMsg = 'タグが重複しています';
+        }
         if (isErrInput) {
             interaction.reply(errMsg);
             return;

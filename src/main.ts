@@ -168,24 +168,27 @@ client.on('interactionCreate', async interaction => {
 
         const forumChannel = inputChannel as ForumChannel
         const availableTags = forumChannel?.availableTags
-        const inputTagsAry = inputTags.split(' ')
-
-        // タグが被ってたら終了
-        availableTags.forEach(v => {
-            inputTagsAry.forEach(tag => {
-                if (v.name === tag) {
-                    isErrInput = true
-                    errMsg = 'タグが重複しています'
-                }
+        // タグが被ってたら配列から外す
+        const inputTagsAry = inputTags.split(' ').filter(tag => {
+            let isDup = false
+            availableTags.forEach(v => {
+                if (tag === v.name) isDup = true
             })
+            return !isDup
         })
+        if (!inputTagsAry.length) {
+            isErrInput = true
+            errMsg = 'タグが重複しています'
+        }
 
         if (isErrInput) {
             interaction.reply(errMsg)
             return
         }
-        forumChannel.setAvailableTags([...availableTags, ...inputTagsAry.map(tag => {return {name: tag}})], 'jejeje')
-        interaction.reply(`${forumChannel} に\`${inputTagsAry.join(', ')}\`を追加しました。`)
+        forumChannel.setAvailableTags([...availableTags, ...inputTagsAry.map(tag => { return { name: tag } })], 'set')
+        const msg = `${forumChannel} に\`${inputTagsAry.join(', ')}\`を追加しました。`
+        interaction.reply(msg)
+        console.log(msg)
     }
 })
 
