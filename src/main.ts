@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, REST, SlashCommandBuilder, Routes, VoiceState, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel, ForumChannel } from 'discord.js'
+import { Client, GatewayIntentBits, REST, SlashCommandBuilder, Routes, VoiceState, CacheType, ChatInputCommandInteraction, EmbedBuilder, TextChannel, ForumChannel, ChannelType } from 'discord.js'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -11,6 +11,7 @@ const client = new Client({
 // metainfo
 const clientId = process.env.BOTCHAN_CLIENTID // botchan
 const guildIDs = [process.env.MAKESENSE_GUILDID, process.env.OHEYA_GUILDID] // makeSense, oheya
+
 
 // 起動時処理
 client.once('ready', () => {
@@ -108,13 +109,16 @@ const commands = commandsInfoList.map(info => new SlashCommandBuilder().setName(
 // タグ追加のビルダ作成
 const addTagsBuilder = new SlashCommandBuilder().setName('addtags').setDescription('forumにタグを追加')
     .addStringOption(
-        option => option.setName('input')
-        .setDescription('inputTest')
+        option => option.setName('tagname')
+            .setDescription('tag name')
+            .setRequired(true)
     )
-    // .addChannelOption(
-    //     option => option.setName('channel')
-    //     .setDescription('channel option')
-    // )
+    .addChannelOption(
+        option => option.setName('setchannel')
+            .setDescription('channel option')
+            .setRequired(true)
+            .addChannelTypes(ChannelType.GuildForum)
+    )
 
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN ?? '')
@@ -125,7 +129,7 @@ guildIDs.forEach(guildId => {
         return
     }
     rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: [...commands, addTagsBuilder] })
-        .then((data: any) => console.log(`Successfully registered ${data.length} application commands.`))
+        .then((data: any) => console.log(`Successfully registered ${data.length} application commands for ${guildId}.`))
         .catch(console.error)
 })
 
@@ -144,27 +148,44 @@ client.on('interactionCreate', async interaction => {
 
     // タグの付与
     if (commandName === 'addtags') {
-        const forumChannel = interaction.guild?.channels.cache.find(channel => channel.name === 'test-forum') as ForumChannel
-        const availableTags = forumChannel.availableTags
-
-        const inputTags = interaction.options.getString('input')
-        let isCover = false
+        let isErrInput = false
         let errMsg = 'タグを追加できませんでした'
+        // input取得
+        const inputTags = interaction.options.getString('tagname') // 半角スペースで複数のタグを追加
+        const inputChannel = interaction.options.getChannel('setchannel')
 
-        // タグが被ってたら終了
-        availableTags.forEach(v => {
-            if(v.name === inputTags) {
-                isCover = true
-                errMsg = '被ってるよ!!'
-            }
-        })
-        if(!inputTags || isCover) {
+        if (!inputTags || !inputChannel) {
             interaction.reply(errMsg)
             return
         }
 
-        forumChannel.setAvailableTags([...availableTags, {name: inputTags}], 'jejeje')
-        interaction.reply('add tags')
+        // チャンネルがforumじゃなければ終了
+        // forumだけしかないけど一応残す
+        if (inputChannel.type !== ChannelType.GuildForum) {
+            isErrInput = true
+            errMsg = 'チャンネルがForumChannelではありません'
+        }
+
+        const forumChannel = inputChannel as ForumChannel
+        const availableTags = forumChannel?.availableTags
+        const inputTagsAry = inputTags.split(' ')
+
+        // タグが被ってたら終了
+        availableTags.forEach(v => {
+            inputTagsAry.forEach(tag => {
+                if (v.name === tag) {
+                    isErrInput = true
+                    errMsg = 'タグが重複しています'
+                }
+            })
+        })
+
+        if (isErrInput) {
+            interaction.reply(errMsg)
+            return
+        }
+        forumChannel.setAvailableTags([...availableTags, ...inputTagsAry.map(tag => {return {name: tag}})], 'jejeje')
+        interaction.reply(`${forumChannel} に\`${inputTagsAry.join(', ')}\`を追加しました。`)
     }
 })
 

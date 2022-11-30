@@ -93,12 +93,13 @@ const commands = commandsInfoList.map(info => new discord_js_1.SlashCommandBuild
 // const forumChannels = 
 // タグ追加のビルダ作成
 const addTagsBuilder = new discord_js_1.SlashCommandBuilder().setName('addtags').setDescription('forumにタグを追加')
-    .addStringOption(option => option.setName('input')
-    .setDescription('inputTest'));
-// .addChannelOption(
-//     option => option.setName('channel')
-//     .setDescription('channel option')
-// )
+    .addStringOption(option => option.setName('tagname')
+    .setDescription('tag name')
+    .setRequired(true))
+    .addChannelOption(option => option.setName('setchannel')
+    .setDescription('channel option')
+    .setRequired(true)
+    .addChannelTypes(discord_js_1.ChannelType.GuildForum));
 // slash commandを何回も登録してしまうのを防ぐためにRESTを使う
 const rest = new discord_js_1.REST({ version: '10' }).setToken((_a = process.env.TOKEN) !== null && _a !== void 0 ? _a : '');
 // guildIDsのサーバーにslash commandを実装
@@ -108,12 +109,11 @@ guildIDs.forEach(guildId => {
         return;
     }
     rest.put(discord_js_1.Routes.applicationGuildCommands(clientId, guildId), { body: [...commands, addTagsBuilder] })
-        .then((data) => console.log(`Successfully registered ${data.length} application commands.`))
+        .then((data) => console.log(`Successfully registered ${data.length} application commands for ${guildId}.`))
         .catch(console.error);
 });
 // slash commandが送信されたら発火
 client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
     if (!interaction.isChatInputCommand())
         return;
     const { commandName } = interaction;
@@ -125,24 +125,39 @@ client.on('interactionCreate', (interaction) => __awaiter(void 0, void 0, void 0
     }));
     // タグの付与
     if (commandName === 'addtags') {
-        const forumChannel = (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.channels.cache.find(channel => channel.name === 'test-forum');
-        const availableTags = forumChannel.availableTags;
-        const inputTags = interaction.options.getString('input');
-        let isCover = false;
+        let isErrInput = false;
         let errMsg = 'タグを追加できませんでした';
-        // タグが被ってたら終了
-        availableTags.forEach(v => {
-            if (v.name === inputTags) {
-                isCover = true;
-                errMsg = '被ってるよ!!';
-            }
-        });
-        if (!inputTags || isCover) {
+        // input取得
+        const inputTags = interaction.options.getString('tagname'); // 半角スペースで複数のタグを追加
+        const inputChannel = interaction.options.getChannel('setchannel');
+        if (!inputTags || !inputChannel) {
             interaction.reply(errMsg);
             return;
         }
-        forumChannel.setAvailableTags([...availableTags, { name: inputTags }], 'jejeje');
-        interaction.reply('add tags');
+        // チャンネルがforumじゃなければ終了
+        // forumだけしかないけど一応残す
+        if (inputChannel.type !== discord_js_1.ChannelType.GuildForum) {
+            isErrInput = true;
+            errMsg = 'チャンネルがForumChannelではありません';
+        }
+        const forumChannel = inputChannel;
+        const availableTags = forumChannel === null || forumChannel === void 0 ? void 0 : forumChannel.availableTags;
+        const inputTagsAry = inputTags.split(' ');
+        // タグが被ってたら終了
+        availableTags.forEach(v => {
+            inputTagsAry.forEach(tag => {
+                if (v.name === tag) {
+                    isErrInput = true;
+                    errMsg = 'タグが重複しています';
+                }
+            });
+        });
+        if (isErrInput) {
+            interaction.reply(errMsg);
+            return;
+        }
+        forumChannel.setAvailableTags([...availableTags, ...inputTagsAry.map(tag => { return { name: tag }; })], 'jejeje');
+        interaction.reply(`${forumChannel} に\`${inputTagsAry.join(', ')}\`を追加しました。`);
     }
 }));
 // 入出ログ出力メソッド
@@ -193,15 +208,15 @@ const sendInOutMsg = (oldState, newState, secretVC) => {
 };
 // vcの状態変化で発火
 client.on('voiceStateUpdate', (oldState, newState) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d, _e, _f, _g, _h, _j, _k, _l;
-    console.log(`oldState: ${(_d = oldState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
-    console.log(`newState: ${(_e = newState.channel) === null || _e === void 0 ? void 0 : _e.name}`);
+    var _c, _d, _e, _f, _g, _h, _j, _k;
+    console.log(`oldState: ${(_c = oldState.channel) === null || _c === void 0 ? void 0 : _c.name}`);
+    console.log(`newState: ${(_d = newState.channel) === null || _d === void 0 ? void 0 : _d.name}`);
     const settingChannel = oldState.guild.channels.cache.find(channel => channel.name === 'settings');
     const settings = yield getSettings(settingChannel);
     // oldStateのチャンネルとnewStateのチャンネルが異なるとき、人が移動。
-    if (((_f = oldState.channel) === null || _f === void 0 ? void 0 : _f.name) !== ((_g = newState.channel) === null || _g === void 0 ? void 0 : _g.name)) {
+    if (((_e = oldState.channel) === null || _e === void 0 ? void 0 : _e.name) !== ((_f = newState.channel) === null || _f === void 0 ? void 0 : _f.name)) {
         // ログ非表示のVCの場合はログを送信しない
-        if (!(settings.hideVC.includes(((_j = (_h = oldState.channel) === null || _h === void 0 ? void 0 : _h.id) !== null && _j !== void 0 ? _j : '') || ((_l = (_k = newState.channel) === null || _k === void 0 ? void 0 : _k.id) !== null && _l !== void 0 ? _l : '')))) {
+        if (!(settings.hideVC.includes(((_h = (_g = oldState.channel) === null || _g === void 0 ? void 0 : _g.id) !== null && _h !== void 0 ? _h : '') || ((_k = (_j = newState.channel) === null || _j === void 0 ? void 0 : _j.id) !== null && _k !== void 0 ? _k : '')))) {
             sendInOutMsg(oldState, newState, settings.secretChannel);
         }
         else {
