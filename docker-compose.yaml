@@ -1,0 +1,13 @@
+version: '3.8'
+services:
+  botchanjs:
+    build: .
+    environment:
+      TZ: Asia/Tokyo
+    image: node:19.1
+    tty: true
+    volumes:
+      - .:/project
+    working_dir: /project
+    restart: always
+    command: npm start
