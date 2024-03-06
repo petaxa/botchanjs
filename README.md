@@ -10,5 +10,5 @@ VCの入退出時にテキストチャンネルにメッセージを送ります
 
 ## 技術スタック
 
-- JavaScript
+- TypeScript
 - discord.js
