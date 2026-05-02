@@ -1,4 +1,5 @@
 # botchanjs
+
 DiscordBotです。
 VCの入退出時にテキストチャンネルにメッセージを送ります。
 
