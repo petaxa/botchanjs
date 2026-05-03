@@ -2,6 +2,7 @@ import type { Client, VoiceState } from "discord.js";
 import { ChannelType } from "discord.js";
 import { getVoiceChannelTransition } from "./transition";
 import { getIgnoreNoticeChannelIds, getNoticeChannelId, shouldNotify } from "./policy";
+import { Temporal } from "temporal-polyfill-lite";
 
 export async function voiceChannelNotice(
   oldState: VoiceState,
@@ -32,12 +33,24 @@ export async function voiceChannelNotice(
     await notice(noticeChannel, message);
   }
 
-  function leaveMsg(memberName: string, channelName: string) {
-    return `${memberName} が ${channelName} から退室しました`;
+  function leaveMsg(
+    memberName: string,
+    channelName: string,
+    now: Temporal.PlainDateTime = Temporal.Now.plainDateTimeISO(),
+  ) {
+    return `${fmtTimeForMsg(now)} に ${memberName} が ${channelName} から退室しました`;
   }
 
-  function joinMsg(memberName: string, channelName: string) {
-    return `${memberName} が ${channelName} に入室しました`;
+  function joinMsg(
+    memberName: string,
+    channelName: string,
+    now: Temporal.PlainDateTime = Temporal.Now.plainDateTimeISO(),
+  ) {
+    return `${fmtTimeForMsg(now)} に ${memberName} が ${channelName} に入室しました`;
+  }
+
+  function fmtTimeForMsg(time: Temporal.PlainDateTime): string {
+    return `${String(time.month).padStart(2, "0")}/${String(time.day).padStart(2, "0")}-${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
   }
 }
 
