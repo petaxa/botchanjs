@@ -49,8 +49,13 @@ export async function voiceChannelNotice(
     return `${fmtTimeForMsg(now)} に ${memberName} が ${channelName} に入室しました`;
   }
 
-  function fmtTimeForMsg(time: Temporal.PlainDateTime): string {
-    return `${String(time.month).padStart(2, "0")}/${String(time.day).padStart(2, "0")}-${String(time.hour).padStart(2, "0")}:${String(time.minute).padStart(2, "0")}`;
+  function fmtTimeForMsg(dateTime: Temporal.PlainDateTime): string {
+    return dateTime.toLocaleString("ja", {
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   }
 }
 
