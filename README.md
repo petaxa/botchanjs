@@ -1,4 +1,5 @@
 # botchanjs
+
 DiscordBotです。
 VCの入退出時にテキストチャンネルにメッセージを送ります。
 
@@ -12,3 +13,10 @@ VCの入退出時にテキストチャンネルにメッセージを送ります
 
 - TypeScript
 - discord.js
+
+## Required
+
+- Docker
+- Vite+
+
+詳細は [docs/tooling.md](docs/tooling.md) と [docs/vps-setup.md](docs/vps-setup.md) を参照してください。

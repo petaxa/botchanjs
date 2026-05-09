@@ -1,0 +1,12 @@
+services:
+  bot:
+    image: ${IMAGE_NAME:-ghcr.io/tempestif/botchanjs}:${IMAGE_TAG:?IMAGE_TAG is required}
+    container_name: botchanjs
+    env_file:
+      - .env
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
