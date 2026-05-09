@@ -7,6 +7,11 @@ import { dispatchOnVoiceStateUpdate } from "./dispatch/onVoiceStateUpdate";
 
 dotenv.config();
 
+const token = process.env.DISCORD_TOKEN ?? process.env.TOKEN;
+if (!token) {
+  throw new Error("Missing required environment variable: DISCORD_TOKEN");
+}
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -17,7 +22,7 @@ const client = new Client({
 });
 dispatchAllEvents(client);
 
-await client.login(process.env.TOKEN);
+await client.login(token);
 
 function dispatchAllEvents(client: Client) {
   dispatchOnReady(client);

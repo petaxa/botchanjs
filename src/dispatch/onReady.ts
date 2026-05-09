@@ -7,9 +7,19 @@ export function dispatchOnReady(client: Client) {
     console.log("Ready!");
     console.log(client.user?.tag);
 
+    const token = process.env.DISCORD_TOKEN ?? process.env.TOKEN;
+    if (!token) {
+      throw new Error("Missing required environment variable: DISCORD_TOKEN");
+    }
+
+    const clientId = process.env.DISCORD_CLIENT_ID ?? process.env.BOT_CLIENT_ID;
+    if (!clientId) {
+      throw new Error("Missing required environment variable: DISCORD_CLIENT_ID");
+    }
+
     const guilds = client.guilds.cache;
     for (const [guildId, guild] of guilds) {
-      await deploySlashCommands(process.env.TOKEN, process.env.BOT_CLIENT_ID, guildId);
+      await deploySlashCommands(token, clientId, guildId);
 
       const settings = await fetchSettings(guildId, getSettingChannel(guild.channels));
       setSettings(settings.id, settings.settings);
