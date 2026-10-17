@@ -1,0 +1,3 @@
+export const MAKE_SENSE = {
+  CURRENT_EVENTS: "1324191171764817930",
+} as const;

@@ -2,7 +2,7 @@ import { Client, GatewayIntentBits } from "@discordjs/core";
 import { REST } from "@discordjs/rest";
 import { WebSocketManager } from "@discordjs/ws";
 
-export interface DiscordConnection {
+interface DiscordConnection {
   client: Client;
   connect(): Promise<void>;
   disconnect(): Promise<void>;

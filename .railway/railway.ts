@@ -7,6 +7,7 @@ export default defineRailway((): ProjectDefinition => {
     replicas: 1,
     env: {
       DISCORD_TOKEN: preserve(),
+      MORNING_REPORT_WEBHOOK_TOKEN: preserve(),
     },
   });
 
