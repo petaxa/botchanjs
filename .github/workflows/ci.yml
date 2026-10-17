@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/setup@7baa639cc3f69d4a4fbff1272f024a8393e12c21 # v3
+        with:
+          runtime: node@24.22.0
+          require-lockfile: true
+      - run: pnpm check
+      - run: pnpm format:check
+      - run: pnpm build
