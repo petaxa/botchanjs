@@ -1,6 +1,6 @@
-import { defineRailway, preserve, project, service } from "railway/iac";
+import { defineRailway, preserve, project, service, type ProjectDefinition } from "railway/iac";
 
-export default defineRailway(() => {
+export default defineRailway((): ProjectDefinition => {
   const botchan = service("botchan", {
     build: "pnpm build",
     start: "pnpm start",

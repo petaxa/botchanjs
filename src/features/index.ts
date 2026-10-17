@@ -7,14 +7,14 @@ export interface Feature {
 
 const ping: Feature = {
   name: "ping",
-  register(client) {
+  register(client): void {
     let botId: string | undefined;
 
-    client.on(GatewayDispatchEvents.Ready, ({ data }) => {
+    client.on(GatewayDispatchEvents.Ready, ({ data }): void => {
       botId = data.user.id;
     });
 
-    client.on(GatewayDispatchEvents.MessageCreate, async ({ data, api }) => {
+    client.on(GatewayDispatchEvents.MessageCreate, async ({ data, api }): Promise<void> => {
       if (!botId || !data.guild_id || data.author.bot) return;
 
       const content = data.content.trim();
