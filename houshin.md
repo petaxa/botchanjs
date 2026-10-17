@@ -113,6 +113,7 @@ Oxcを使用してLint・型チェック・フォーマットを実施する。
 
 ### package.json
 
+```json
 {
   "type": "module",
   "scripts": {
@@ -124,6 +125,7 @@ Oxcを使用してLint・型チェック・フォーマットを実施する。
     "format:check": "oxfmt --check ."
   }
 }
+```
 
 ### 開発依存関係
 
@@ -266,11 +268,11 @@ GitHub Actionsで以下を実行する。
 
 ## 初期実装の完了条件
 
-- [ ] TypeScript + Node.js 24の開発環境が構築されている
-- [ ] pnpmで依存関係を管理できる
-- [ ] tsdownでTypeScriptをビルドできる
-- [ ] OxlintでLint・型チェックを実行できる
-- [ ] Oxfmtでフォーマットを検証できる
+- [x] TypeScript + Node.js 24の開発環境が構築されている
+- [x] pnpmで依存関係を管理できる
+- [x] tsdownでTypeScriptをビルドできる
+- [x] OxlintでLint・型チェックを実行できる
+- [x] Oxfmtでフォーマットを検証できる
 - [ ] @discordjs/coreを使用してDiscord APIに接続できる
 - [ ] Gatewayイベントを受信できる
 - [ ] VC入退出イベントを検知できる
