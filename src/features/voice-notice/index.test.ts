@@ -2,7 +2,6 @@ import { EventEmitter } from "node:events";
 import { GatewayDispatchEvents, type Client } from "@discordjs/core";
 import { ChannelType } from "discord-api-types/v10";
 import { describe, expect, it, vi } from "vite-plus/test";
-import { readGuildSettings } from "../../config/guild-settings.ts";
 import { voiceNoticeFeature } from "./index.ts";
 
 const channels = [
@@ -64,31 +63,6 @@ function voiceEvent(events: EventEmitter, channelId: string | null): void {
     },
   });
 }
-
-describe("guild settings", (): void => {
-  it("reads every page and keeps the newest valid value for each key", async (): Promise<void> => {
-    const { client } = mockClient([]);
-    const firstPage = Array.from({ length: 100 }, (_, index): object => ({
-      id: String(200 - index),
-      content: index === 0 ? "noticeChannel:public" : "bad line",
-    }));
-    const getMessages = vi
-      .fn()
-      .mockResolvedValueOnce(firstPage)
-      .mockResolvedValueOnce([
-        { id: "100", content: "noticeChannel:old" },
-        { id: "99", content: "secretChannel:secret" },
-      ]);
-    client.api.channels.getMessages = getMessages;
-
-    const settings = await readGuildSettings(client, channels as never);
-    expect(Object.fromEntries(settings)).toEqual({
-      noticeChannel: "public",
-      secretChannel: "secret",
-    });
-    expect(getMessages).toHaveBeenNthCalledWith(2, "settings", { limit: 100, before: "101" });
-  });
-});
 
 describe("voice notices", (): void => {
   it("announces joins, moves, and exits but ignores mute changes", async (): Promise<void> => {

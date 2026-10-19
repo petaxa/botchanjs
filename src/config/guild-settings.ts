@@ -1,5 +1,6 @@
 import { type Client } from "@discordjs/core";
 import { ChannelType, type APIGuildChannel } from "discord-api-types/v10";
+import { parseGuildSetting } from "./guild-settings-parser.ts";
 
 /** Reads settings from every message in the guild's `settings` text channel. */
 export async function readGuildSettings(
@@ -19,13 +20,9 @@ export async function readGuildSettings(
       before,
     });
     for (const message of messages) {
-      const separator = message.content.indexOf(":");
-      if (separator < 1 || message.content.includes("\n")) continue;
-
-      const key = message.content.slice(0, separator).trim();
-      const value = message.content.slice(separator + 1).trim();
+      const setting = parseGuildSetting(message.content);
       // Discord returns newest messages first, so the latest valid value wins.
-      if (key && value && !settings.has(key)) settings.set(key, value);
+      if (setting && !settings.has(setting.key)) settings.set(setting.key, setting.value);
     }
     if (messages.length < 100) return settings;
     before = messages.at(-1)?.id;
