@@ -27,6 +27,19 @@ pnpm dev
 
 デプロイ後はサーバー内のチャンネルで Bot にメンションして `ping` と送ると、同じチャンネルに `pong` を返します（例: `@Bot ping`）。
 
+## Morning report webhook
+
+`MORNING_REPORT_WEBHOOK_TOKEN` を設定すると、Bot は `PORT`（未設定なら `3000`）で HTTP を受け付けます。Railway ではこの変数に十分長いランダムな値を設定し、サービスの公開ドメインを用意してください。トークンが未設定なら HTTP サーバーは起動しません。
+
+Grok Bot から `POST /morning-report` に JSON を送ると、`MAKE_SENSE.CURRENT_EVENTS` に Components V2 のレポートを投稿します。成功時は `204`、認証失敗は `401`、本文が不正なら `400` を返します。受信するデータと投稿処理は `src/features/morning-report/index.ts`、HTTP の起動・認証・JSON 読み取りは `src/service/http/index.ts` にあります。投稿先チャンネルIDは `src/config/channels.ts` にあります。
+
+```sh
+curl -X POST "https://<Railwayの公開ドメイン>/morning-report" \
+  -H "Authorization: Bearer $MORNING_REPORT_WEBHOOK_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"date":"2026-10-18","overview":"今朝の概要","events":["今日の注目事項"]}'
+```
+
 ## 次の小さな段階
 
 1. VC 状態変化の解釈を `features` に追加する

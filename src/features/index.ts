@@ -1,8 +1,10 @@
 import { GatewayDispatchEvents, type Client } from "@discordjs/core";
+import type { HttpService } from "../service/http/index.ts";
+import { morningReportFeature } from "./morning-report/index.ts";
 
-export interface Feature {
+interface Feature {
   name: string;
-  register(client: Client): void;
+  register(client: Client, http: HttpService): void;
 }
 
 const ping: Feature = {
@@ -32,4 +34,4 @@ const ping: Feature = {
   },
 };
 
-export const features: readonly Feature[] = [ping];
+export const features: readonly Feature[] = [ping, morningReportFeature];
