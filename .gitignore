@@ -5,3 +5,9 @@ dist/
 !.env.example
 .railway/*
 !.railway/railway.ts
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+infra/terraform/*.tfplan
+infra/terraform/*.tfvars
+infra/terraform/backend.auto.hcl
+infra/terraform/crash.log

@@ -1,0 +1,100 @@
+name: Terraform
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/terraform.yml"
+      - "infra/terraform/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/terraform.yml"
+      - "infra/terraform/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.2
+          terraform_wrapper: false
+      - run: terraform fmt -check -recursive
+        working-directory: infra/terraform
+      - run: terraform init -backend=false -input=false -lockfile=readonly
+        working-directory: infra/terraform
+      - run: terraform validate -no-color
+        working-directory: infra/terraform
+
+  plan_apply:
+    needs: validate
+    if: >-
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name != 'pull_request' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.TF_R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.TF_R2_SECRET_ACCESS_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CLOUDFLARE_API_TOKEN }}
+      TF_VAR_cloudflare_account_id: ${{ secrets.TF_CLOUDFLARE_ACCOUNT_ID }}
+      TF_R2_BUCKET: ${{ secrets.TF_R2_BUCKET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.16.2
+          terraform_wrapper: false
+      - name: Check bootstrap secrets
+        id: bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=false
+          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY CLOUDFLARE_API_TOKEN TF_VAR_cloudflare_account_id TF_R2_BUCKET; do
+            if [[ -z "${!name:-}" ]]; then
+              missing=true
+            fi
+          done
+          if [[ "$missing" == true ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == pull_request ]]; then
+              echo "::notice::Live Plan awaits R2 bootstrap and GitHub Secrets; see infra/terraform/README.md."
+              echo "ready=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "::error::Terraform bootstrap secrets are missing; see infra/terraform/README.md."
+            exit 1
+          fi
+          [[ "$TF_VAR_cloudflare_account_id" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
+          [[ "$TF_R2_BUCKET" =~ ^[a-z0-9-]+$ ]] || exit 1
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+      - name: Configure R2 backend
+        if: steps.bootstrap.outputs.ready == 'true'
+        shell: bash
+        working-directory: infra/terraform
+        run: |
+          set -euo pipefail
+          printf 'bucket = "%s"\nendpoints = { s3 = "https://%s.r2.cloudflarestorage.com" }\n' \
+            "$TF_R2_BUCKET" "$TF_VAR_cloudflare_account_id" > backend.auto.hcl
+          terraform init -input=false -lockfile=readonly -backend-config=backend.auto.hcl
+      - name: Plan
+        if: steps.bootstrap.outputs.ready == 'true'
+        working-directory: infra/terraform
+        run: terraform plan -input=false -lock-timeout=5m -no-color -out=tfplan
+      - name: Apply on main
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        working-directory: infra/terraform
+        run: terraform apply -input=false -no-color tfplan
