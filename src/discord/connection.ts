@@ -13,7 +13,11 @@ export function createDiscordConnection(token: string): DiscordConnection {
   const gateway = new WebSocketManager({
     token,
     rest,
-    intents: GatewayIntentBits.Guilds | GatewayIntentBits.GuildMessages,
+    intents:
+      GatewayIntentBits.Guilds |
+      GatewayIntentBits.GuildMessages |
+      GatewayIntentBits.GuildVoiceStates |
+      GatewayIntentBits.MessageContent,
   });
   const client = new Client({ rest, gateway });
 
