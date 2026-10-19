@@ -8,6 +8,7 @@ export default defineRailway((): ProjectDefinition => {
     env: {
       DISCORD_TOKEN: preserve(),
       MORNING_REPORT_WEBHOOK_TOKEN: preserve(),
+      PORT: "3000",
     },
   });
 

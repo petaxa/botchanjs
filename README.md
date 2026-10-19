@@ -29,12 +29,12 @@ pnpm dev
 
 ## Morning report webhook
 
-`MORNING_REPORT_WEBHOOK_TOKEN` を設定すると、Bot は `PORT`（未設定なら `3000`）で HTTP を受け付けます。Railway ではこの変数に十分長いランダムな値を設定し、サービスの公開ドメインを用意してください。トークンが未設定なら HTTP サーバーは起動しません。
+`MORNING_REPORT_WEBHOOK_TOKEN` を設定すると、Bot は `PORT`（未設定なら `3000`）で HTTP を受け付けます。Railway の `botchan` サービスでは `PORT=3000` とし、公開ドメインの Target Port も `3000` に設定します。トークンには十分長いランダムな値を設定してください。トークンが未設定なら HTTP サーバーは起動しません。
 
 Grok Bot から `POST /morning-report` に JSON を送ると、`MAKE_SENSE.CURRENT_EVENTS` に Components V2 のレポートを投稿します。成功時は `204`、認証失敗は `401`、本文が不正なら `400` を返します。受信するデータと投稿処理は `src/features/morning-report/index.ts`、HTTP の起動・認証・JSON 読み取りは `src/service/http/index.ts` にあります。投稿先チャンネルIDは `src/config/channels.ts` にあります。
 
 ```sh
-curl -X POST "https://<Railwayの公開ドメイン>/morning-report" \
+curl -X POST "https://botchan-production-92e6.up.railway.app/morning-report" \
   -H "Authorization: Bearer $MORNING_REPORT_WEBHOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"date":"2026-10-18","overview":"今朝の概要","events":["今日の注目事項"]}'
