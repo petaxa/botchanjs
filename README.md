@@ -2,7 +2,7 @@
 
 Discord Bot のリプレイス用リポジトリです。方針は [houshin.md](./houshin.md) にまとめています。
 
-現在は最初の土台として、Discord Gateway への接続、終了時の切断、動作確認用の `ping` 応答を実装しています。通知や設定の仕様は未確定のため、まだ実装していません。機能は `src/features/index.ts` の一覧に追加します。
+Discord Gateway への接続、終了時の切断、動作確認用の `ping` 応答、VC 入退出通知を実装しています。機能は `src/features/index.ts` の一覧に追加します。
 
 ## 開発
 
@@ -11,6 +11,7 @@ Node.js 24.22.0 と pnpm 12.11.2 を使用します。`pnpm dev` はソースを
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
+pnpm test
 pnpm format:check
 pnpm build
 ```
@@ -23,9 +24,23 @@ cp .env.example .env
 pnpm dev
 ```
 
-ビルド後は `pnpm start` で起動できます。現在要求する Gateway Intent は Guilds と GuildMessages です。VC 機能を追加するときに GuildVoiceStates を有効化します。Bot をサーバーに導入するときは、動作確認用のチャンネルで View Channel と Send Messages の権限を付けます。
+ビルド後は `pnpm start` で起動できます。Gateway Intent は Guilds、GuildMessages、GuildVoiceStates、MessageContent を使用します。Discord Developer Portal の Bot 設定でも **Message Content Intent** を有効にしてください。Bot には `settings` チャンネルの View Channel と Read Message History、通知先チャンネルの View Channel と Send Messages 権限が必要です。
 
 デプロイ後はサーバー内のチャンネルで Bot にメンションして `ping` と送ると、同じチャンネルに `pong` を返します（例: `@Bot ping`）。
+
+## VC 入退出通知
+
+ユーザーが VC に入室・退出すると、`MM/dd hh:mm に <表示名> が <VC名> に入室しました`、または `MM/dd hh:mm に <表示名> が <VC名> から退出しました` を投稿します。時刻は日本時間です。VC 間の移動では退出と入室をそれぞれ通知します。Bot 起動時に既に VC にいるユーザーについては通知しません。
+
+通常の通知先は `vc-notice` という名前のテキストチャンネルです。サーバーに `settings` という名前のテキストチャンネルがある場合、その全メッセージを `キー名:値` の形式で読み取ります。書式が違うメッセージは無視し、同じキーが複数あれば新しい有効な設定を使います。次の設定を利用できます。
+
+```text
+noticeChannel:123456789012345678
+secretChannel:234567890123456789
+secretNoticeChannel:345678901234567890
+```
+
+`noticeChannel` は通常の通知先テキストチャンネルの ID です。設定すると `vc-notice` より優先します。設定先が存在しない場合は通知しません。`secretChannel` は秘匿する VC の ID です。この VC の入退出は `secretNoticeChannel` に設定したテキストチャンネルへだけ通知します。`secretNoticeChannel` がない場合、その VC の通知は行いません。設定に使う ID は同じサーバー内のチャンネルを指定してください。
 
 ## Morning report webhook
 
@@ -42,13 +57,10 @@ curl -X POST "https://botchan-production-92e6.up.railway.app/morning-report" \
 
 ## 次の小さな段階
 
-1. VC 状態変化の解釈を `features` に追加する
-2. 通知先の設定方法と保存先を決める
-3. VC 通知の投稿を追加する
-4. MCP の読み取り範囲と認証方式を決める
-5. Railway の IaC を Plan してから適用する
+1. MCP の読み取り範囲と認証方式を決める
+2. Railway の IaC を Plan してから適用する
 
-CI は pull request と main の変更で型チェック・フォーマット・ビルドを実行します。GitHub の main にこのワークフローを反映した後、Railway の `production` 環境にある `botchan` サービスの Source を `petaxa/botchanjs` の `main` に接続し、Service Settings で **Wait for CI** を有効にします。Railway の GitHub App にこのリポジトリへのアクセスが必要です。これにより、Railway は main の更新を検知し、GitHub Actions の検証が成功したコミットをデプロイします。GitHub Actions に Railway の認証 token は不要です。Bot の `DISCORD_TOKEN` は引き続き Railway Variables で管理します。
+CI は pull request と main の変更で型チェック・テスト・フォーマット・ビルドを実行します。Railway は main の更新を検知し、GitHub Actions の検証が成功したコミットをデプロイします。GitHub Actions に Railway の認証 token は不要です。Bot の `DISCORD_TOKEN` は引き続き Railway Variables で管理します。
 
 `.railway/railway.ts` は単一 Bot サービスの最小定義です。Railway への Plan・Apply はまだ行っていません。GitHub 連携はアプリケーションのソースとデプロイトリガーを設定します。
 
