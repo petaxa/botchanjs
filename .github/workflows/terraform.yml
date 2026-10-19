@@ -5,11 +5,13 @@ on:
     paths:
       - ".github/workflows/terraform.yml"
       - "infra/terraform/**"
+      - "worker/**"
   push:
     branches: [main]
     paths:
       - ".github/workflows/terraform.yml"
       - "infra/terraform/**"
+      - "worker/**"
   workflow_dispatch:
 
 permissions:
@@ -50,6 +52,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.TF_CLOUDFLARE_API_TOKEN }}
       TF_VAR_cloudflare_account_id: ${{ secrets.TF_CLOUDFLARE_ACCOUNT_ID }}
       TF_R2_BUCKET: ${{ secrets.TF_R2_BUCKET }}
+      TF_VAR_access_service_token_id: ${{ secrets.TF_ACCESS_SERVICE_TOKEN_ID }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -64,7 +67,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=false
-          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY CLOUDFLARE_API_TOKEN TF_VAR_cloudflare_account_id TF_R2_BUCKET; do
+          for name in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY CLOUDFLARE_API_TOKEN TF_VAR_cloudflare_account_id TF_R2_BUCKET TF_VAR_access_service_token_id; do
             if [[ -z "${!name:-}" ]]; then
               missing=true
             fi
@@ -80,6 +83,7 @@ jobs:
           fi
           [[ "$TF_VAR_cloudflare_account_id" =~ ^[0-9a-fA-F]{32}$ ]] || exit 1
           [[ "$TF_R2_BUCKET" =~ ^[a-z0-9-]+$ ]] || exit 1
+          [[ "$TF_VAR_access_service_token_id" =~ ^[0-9a-fA-F-]{36}$ ]] || exit 1
           echo "ready=true" >> "$GITHUB_OUTPUT"
       - name: Configure R2 backend
         if: steps.bootstrap.outputs.ready == 'true'
